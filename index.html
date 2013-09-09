@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>What's New in PHP 5.5 - Corey Ballou</title>
+		<meta name="description" content="What's New in PHP 5.5 - Corey Ballou">
+		<meta name="author" content="Corey Ballou">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+		<link rel="stylesheet" href="css/overrides.css">
+
+		<!-- syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+
+		<script type="text/javascript" src="js/jquery.min.js"></script>
+	</head>
+
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<!-- Title -->
+				<section>
+					<h1>What's New in PHP 5.5</h1>
+
+                    <p><img src="img/corey.jpg" /></p>
+
+					<p>
+                        <small>
+                        <a href="http://coreyballou.co" class="alt">Corey Ballou</a> &nbsp;&middot;&nbsp;
+                        <a href="http://twitter.com/cballou" class="alt">@cballou</a>
+                        </small>
+					</p>
+
+                    <a href="http://pop.co" class="image" target="_blank">
+						<img src="img/pop.png" height="100" class="no" alt="POP.co" />
+					</a>
+
+					<a href="http://pop.co" class="image" target="_blank">
+						<img src="img/dotco.png" height="" width="" class="no" alt="POP.co" />
+					</a>
+
+					<aside class="notes">
+                        &middot; Queen City PHP co-organizer <br />
+						&middot; POP.co employee <br />
+						&middot; Stop me to ask questions
+					</aside>
+				</section>
+
+                <section>
+                    <h2>Generators</h2>
+
+                    <p>Support for generators has been added via the <strong>yield</strong> keyword</p>
+
+                    <img src="img/yield-sign.jpg" alt="Yield" />
+
+                    <p><code>range(0, 1000000)</code> vs. user supplied function</p>
+
+                    <aside class="notes">
+                        &middot; Generators provide an easy way to implement simple iterators
+                        without the overhead or complexity of implementing a class
+                        that implements the Iterator interface<br />
+                        middot; Allows you to write code that uses foreach to iterate
+                        over a set of data without needing to build an array in memory<br />
+                        &middot; Useful in avoiding memory limitations, i.e.
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Example Usage of Yield Keyword</h2>
+
+<pre><code>function getLines($filepath) {
+    $f = fopen($filepath, 'r');
+    try {
+        while ($line = fgets($f)) {
+            yield $line;
+        }
+    } finally {
+        fclose($f);
+    }
+}
+
+foreach (getLines("file.txt") as $n => $line) {
+    echo $line;
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>The "Finally" Keyword is Finally Here</h2>
+
+                    <p>
+                        Execute code <strong>ALWAYS</strong>.
+                    </p>
+<pre><code>try {
+    throw new Exception('hello');
+} catch (Exception $e) {
+    echo $e->getMessage();
+} finally {
+    // this code will always be run
+    echo ', world';
+}
+</code></pre>
+
+
+                    <aside class="notes">
+                        &middot; Code that should be run regardless of whether an exception has been thrown or not.<br />
+                        &middot; Useful for things like closing file descriptors or resources.<br />
+                        &middot; Also useful for cleanup code in a method/function.<br />
+                        &middot; You can nest try/catch/finally and throw a new exception<br />
+                        &middot; Check the last slide!
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Password Hashing API</h2>
+
+                    <p>A super easy library that uses underlying crypt library.</p>
+
+                    <ul>
+                        <li><code>password_get_info()</code></li>
+                        <li><code>password_hash()</code></li>
+                        <li><code>password_needs_rehash()</code></li>
+                        <li><code>password_verify()</code></li>
+                    </ul>
+
+                    <aside class="notes">
+                        &middot; Best practice cryptography to the masses.<br />
+                        &middot; No dealing with messy ciphertext
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Example of Register/Login</h2>
+
+<pre><code>function register($username, $password) {
+    $hash = password_hash($password, PASSWORD_BCRYPT);
+    // save hash to database
+}
+
+function login($username, $password) {
+    $hash = getHashFromDbByUsername($username);
+    if (password_verify($password, $hash)) {
+        // perform login (store session var)
+        return true;
+    }
+    return false;
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Increasing Password Security</h2>
+
+                    <p>You can optionally supply your own salt and algorithmic cost.</p>
+
+<pre><code>function register($username, $password) {
+    $options = array('salt' => 'someRandomSalt', 'cost' => 12);
+    $hash = password_hash($password, PASSWORD_BCRYPT, $options);
+    // save hash to database
+}</code></pre>
+
+                    <aside class="notes">
+                        &middot; Default cost is 10.<br />
+                        &middot; Cost refers to "work factor".<br />
+                        &middot; Work factor affects resulting hash.<br />
+                        &middot; Work factor increases the computation time.
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Example of Upgrading Your Hashing Algorithm</h2>
+
+<pre><code>function login($username, $password) {
+    $hash = getHashFromDbByUsername($username);
+    if (password_verify($password, $hash)) {
+        // check if hash is in updated format
+        if (password_needs_rehash($hash, PASSWORD_BCRYPT)) {
+            // perform update
+            $hash = password_hash($password, PASSWORD_BCRYPT);
+            // save new hash to database
+        }
+
+        // perform login (store session var)
+        return true;
+    }
+    return false;
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Foreach + List</h2>
+
+<pre><code>$array = [
+    [1, 2],
+    [3, 4],
+];
+
+foreach ($array as list($a, $b)) {
+    echo "A: $a; B: $b\n";
+}</code></pre>
+
+                    <aside class="notes">
+
+                    </aside>
+                </section>
+
+                <section>
+                    <h2><code>array_column()</code> fun</h2>
+
+<pre><code>$people = [
+    [
+        'firstname' => 'John',
+        'lastname' => 'Doe'
+    ],
+    [
+        'firstname' => 'Jane',
+        'lastname' => 'Doe'
+    ],
+];
+
+// contains [ 0 => 'John', 1 => 'Jane' ]
+$firstnames = array_column($people, 'firstname');</code></pre>
+                </section>
+
+                <section>
+                    <h2>Improvements to empty()</h2>
+
+<pre><code>function always_false() {
+    return false;
+}
+
+if (empty(always_false())) {
+    echo "Hello, world.";
+}</code></pre>
+
+                    <aside class="notes">
+
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Array and String Literal Dereferencing</h2>
+
+<pre><code>// array dereferencing
+echo [1, 2, 3][0];
+
+// string dereferencing
+echo 'PHP'[0];</code></pre>
+
+                    <aside class="notes">
+
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Now let's really get crazy...</h2>
+
+<pre><code>function foo() {
+    return array(1, 2, 3);
+}
+echo foo()[2]; // prints 3
+
+$func = function() { return array('a', 'b', 'c'); };
+echo $func()[0]; // prints a</code></pre>
+                </section>
+
+                <section>
+                    <h2>Zend Optimiser+ OPCache Extension</h2>
+
+                    <ul>
+                        <li>Not a replacement for APC/memcache(d). No user cache!</li>
+                        <li>Available in PHP 5.4 via install.</li>
+                        <li>Source available: <a href="https://github.com/zend-dev/ZendOptimizerPlus" target="_blank">https://github.com/zend-dev/ZendOptimizerPlus</a></li>
+                    </ul>
+
+<pre><code>$ php -v
+PHP 5.4.17RC1 (cli) (built: Jun 22 2013 19:27:26)
+Copyright (c) 1997-2013 The PHP Group
+Zend Engine v2.4.0, Copyright (c) 1998-2013 Zend Technologies
+    with Zend OPcache v7.0.2, Copyright (c) 1999-2013, by Zend Technologies</code></pre>
+
+                    <aside class="notes">
+
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>So, uh, what is an opcode cache?</h2>
+
+                    <ul>
+                        <li>Component designed to speed up performance of PHP without altering the app.</li>
+                        <li>Overrides PHP's default compiler callback by checking if a compiled intermediate-code version of the code is available in-memory.</li>
+                        <li>It skips compilation when it can!</li>
+                    </ul>
+
+                    <aside class="notes">
+                        &middot; Uses shared memory for storage, and can execute files directly off of it - without having to 'unserialize' the code.
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>What to do about deprecated APC module?</h2>
+
+                    <p>APC User Cache is in the works:</p>
+                    <p><a href="http://github.com/krakjoe/apcu">github.com/krakjoe/apcu</a></p>
+                    <p><em>APC minus the opcode cache!</em></p>
+
+                    <img src="img/opcode-benchmark.png" />
+
+                    <aside class="notes">
+                        &middot; Zend Optimizer+ has a consistent 5-20% rps performance edge over APC
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Backwards Incompatible Changes</h2>
+
+                    <ul>
+                        <li>Win XP/2003 support dropped</li>
+                        <li><strong>self</strong>, <strong>parent</strong> and <strong>static</strong> are case insensitive</li>
+                        <li><code>pack()</code> and <code>unpack()</code> made more compatible with perl</li>
+                        <li><a href="http://www.php.net/manual/en/migration55.deprecated.php" target="_blank">http://www.php.net/manual/en/migration55.deprecated.php</a></li>
+                    </ul>
+
+                    <aside class="notes">
+                        &middot; Windows builds now require Windows Vista or newer<br />
+                        &middot; If previously using "a" format with unpack, need to use version_compare() to swap "a" for "Z"
+                    </aside>
+                </section>
+
+				<section>
+					<h2>CREDITS</h2>
+
+					<ul>
+                        <li><a href="http://php.net/manual/en/migration55.changes.php" target="_blank">php.net - What has changed in PHP 5.5.x</a></li>
+                        <li><a href="https://wiki.php.net/rfc/optimizerplus" target="_blank">wiki.php.net - Integrating Zend Optimizer+ into the PHP distribution</a></li>
+                        <li><a href="http://schlueters.de/blog/archives/138-Features-in-PHP-trunk-Array-dereferencing.html" target="_blank">schlueters.de - Features in PHP trunk: Array dereferencing</a></li>
+                        <li><a href="http://www.slideshare.net/tcorrigan1/whats-new-in-php-55">slideshare.net - What's new in PHP 5.5</a></li>
+                        <li><a href="http://stackoverflow.com/questions/4795385/how-do-you-use-bcrypt-for-hashing-passwords-in-php" target="_blank">stackoverflow.com - How do you use bcrypt for hashing passwords in PHP?</a></li>
+					</ul>
+				</section>
+
+				<section data-state="end">
+					<h2>QUESTIONS? COMMENTS?</h2>
+					<p>
+                        <img src="img/questions.jpg" />
+					</p>
+                    <p>Thanks for pretending to enjoy my banter!</p>
+				</section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+		<script>
+        // Full list of configuration options available here:
+        // https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            history: true,
+            center: false,
+
+            // default/cube/page/concave/zoom/linear/fade/none
+            theme: Reveal.getQueryHash().theme,
+            transition: Reveal.getQueryHash().transition || 'fade',
+
+            // Optional libraries used to extend on reveal.js
+            dependencies: [
+                { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                { src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.tabReplace = '    '; hljs.initHighlightingOnLoad(); } },
+                { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+                { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+            ]
+        });
+		</script>
+	</body>
+</html>
